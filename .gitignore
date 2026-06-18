@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Courtside Oracle — generated files (regenerate locally, do not commit)
+src/data/raw/
+src/data/processed/
+src/models/*.pkl
