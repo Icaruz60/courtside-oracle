@@ -12,9 +12,14 @@ CREATE TABLE IF NOT EXISTS predictions (
     game_date        DATE NOT NULL,
     home_team        TEXT NOT NULL,   -- team abbreviation, e.g. "LAL"
     away_team        TEXT NOT NULL,
+    home_team_id     TEXT,            -- NBA team ID for logo URL
+    away_team_id     TEXT,
     predicted_winner TEXT NOT NULL CHECK (predicted_winner IN ('home', 'away')),
-    predicted_team   TEXT NOT NULL,   -- human-readable team name for display
+    predicted_team   TEXT NOT NULL,   -- abbreviation of predicted winning team
+    home_win_prob    NUMERIC(5, 4),   -- e.g. 0.6290
+    away_win_prob    NUMERIC(5, 4),
     confidence       NUMERIC(5, 4) NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+    actual_winner    TEXT,            -- abbreviation, NULL until game is played
     correct          BOOLEAN,         -- NULL until result is known
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );

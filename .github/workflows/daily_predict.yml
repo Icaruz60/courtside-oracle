@@ -1,0 +1,40 @@
+name: Daily Predictions
+
+on:
+  schedule:
+    - cron: "0 15 * * *"   # 11:00 AM ET (15:00 UTC), before most tip-offs
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch today's schedule + predict
+        env:
+          SUPABASE_URL:  ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:  ${{ secrets.SUPABASE_KEY }}
+          PROXIES:       ${{ secrets.PROXIES }}
+        run: python src/scripts/daily_run.py --predict
+
+      - name: Commit updated ELO snapshot if changed
+        run: |
+          git config user.name  "courtside-oracle[bot]"
+          git config user.email "bot@courtside-oracle"
+          git add src/data/processed/player_elo_current.parquet || true
+          git diff --cached --quiet || git commit -m "chore: update player ELO snapshot [skip ci]"
+          git push || true

@@ -221,3 +221,14 @@ __marimo__/
 src/data/raw/
 src/data/processed/
 src/models/*.pkl
+!src/models/xgb_model.pkl
+
+# Next.js
+web/.next/
+web/node_modules/
+web/.env.local
+web/out/
+
+# Keep the ELO snapshot (needed by GitHub Actions for predictions)
+!src/data/processed/player_elo_current.parquet
+!src/data/processed/feature_importance.csv

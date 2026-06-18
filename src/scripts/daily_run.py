@@ -1,30 +1,24 @@
 """
 Daily orchestration entry point for GitHub Actions.
 
-Execution order:
-  1. evaluate.py — update yesterday's predictions with actual results
-  2. predict.py  — generate today's predictions before games tip off
-
-Exits with code 1 on any failure so GitHub Actions marks the run as failed.
-All output is logged to stdout for GitHub Actions to capture.
-
 Usage:
-    python src/scripts/daily_run.py
+    python src/scripts/daily_run.py --predict    # run predictions only
+    python src/scripts/daily_run.py --evaluate   # run evaluation only
+    python src/scripts/daily_run.py              # run both
 
 Required environment variables:
     SUPABASE_URL
     SUPABASE_KEY
 """
 
+import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
-# Ensure src/ is on the path when called from repo root
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from pipeline.evaluate import evaluate_yesterdays_games
-from pipeline.predict import predict_todays_games
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,36 +28,49 @@ logging.basicConfig(
 logger = logging.getLogger("daily_run")
 
 
-def main() -> None:
-    errors: list[str] = []
+def run_predict():
+    """Fetch today's schedule and predict all games."""
+    from pipeline.predict import predict_todays_games
+    predictions = predict_todays_games()
+    logger.info("Predictions complete: %d game(s) stored.", len(predictions))
 
-    # Step 1 — evaluate yesterday's results
-    logger.info("=== STEP 1: Evaluating yesterday's results ===")
-    try:
-        evaluate_yesterdays_games()
-        logger.info("Step 1 complete.")
-    except Exception as exc:
-        msg = f"evaluate.py failed: {exc}"
-        logger.error(msg, exc_info=True)
-        errors.append(msg)
 
-    # Step 2 — generate today's predictions
-    logger.info("=== STEP 2: Generating today's predictions ===")
-    try:
-        predictions = predict_todays_games()
-        logger.info("Step 2 complete. %d prediction(s) stored.", len(predictions))
-    except Exception as exc:
-        msg = f"predict.py failed: {exc}"
-        logger.error(msg, exc_info=True)
-        errors.append(msg)
+def run_evaluate():
+    """Check results for unresolved predictions."""
+    from pipeline.evaluate import evaluate
+    evaluate()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--predict",  action="store_true")
+    parser.add_argument("--evaluate", action="store_true")
+    args = parser.parse_args()
+
+    run_both = not args.predict and not args.evaluate
+
+    errors = []
+
+    if args.evaluate or run_both:
+        logger.info("=== Evaluating results ===")
+        try:
+            run_evaluate()
+        except Exception as exc:
+            logger.error("evaluate failed: %s", exc, exc_info=True)
+            errors.append(str(exc))
+
+    if args.predict or run_both:
+        logger.info("=== Generating predictions ===")
+        try:
+            run_predict()
+        except Exception as exc:
+            logger.error("predict failed: %s", exc, exc_info=True)
+            errors.append(str(exc))
 
     if errors:
-        logger.critical("Daily run finished with %d error(s):", len(errors))
-        for e in errors:
-            logger.critical("  • %s", e)
         sys.exit(1)
 
-    logger.info("=== Daily run complete. ===")
+    logger.info("=== Done. ===")
 
 
 if __name__ == "__main__":
