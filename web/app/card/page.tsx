@@ -23,7 +23,6 @@ export default function CardPage() {
   const incorrect = record?.total_incorrect ?? 0;
   const total = correct + incorrect;
   const accuracy = total > 0 ? ((correct / total) * 100).toFixed(1) : "--";
-
   const confidence = prediction ? Math.round(prediction.confidence * 100) : null;
   const homeName = prediction ? (TEAM_NAMES[prediction.home_team] ?? prediction.home_team) : null;
   const awayName = prediction ? (TEAM_NAMES[prediction.away_team] ?? prediction.away_team) : null;
@@ -32,99 +31,97 @@ export default function CardPage() {
     : null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-bg p-4">
-      <div className="w-full max-w-[640px] bg-brand-card border border-brand-border rounded-2xl overflow-hidden">
+    <div className="w-full h-screen bg-brand-bg flex flex-col overflow-hidden">
 
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-brand-green text-xl">🏀</span>
-            <span className="font-black tracking-tight text-white text-base">
-              NBA <span className="text-brand-green">PREDICTIONS</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-brand-green" style={{ animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite" }} />
-            <span className="text-[10px] text-brand-green tracking-widest uppercase font-bold">LIVE</span>
-          </div>
+      {/* Header */}
+      <div className="px-5 py-3 border-b border-brand-border flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-brand-green text-lg">🏀</span>
+          <span className="font-black tracking-tight text-white text-sm">
+            NBA <span className="text-brand-green">PREDICTIONS</span>
+          </span>
         </div>
-
-        {/* Game + Predicted winner */}
-        <div className="grid grid-cols-2 divide-x divide-brand-border border-b border-brand-border">
-
-          {/* Next game */}
-          <div className="px-6 py-5">
-            <p className="text-[10px] tracking-widest uppercase text-brand-muted mb-4">
-              📅 NEXT GAME
-            </p>
-            {prediction ? (
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center gap-1.5">
-                  <TeamLogo abbrev={prediction.home_team} teamId={prediction.home_team_id} size={44} />
-                  <span className="text-xs font-bold text-white tracking-wide uppercase">{homeName}</span>
-                </div>
-                <span className="text-brand-muted text-xs font-semibold">VS</span>
-                <div className="flex flex-col items-center gap-1.5">
-                  <TeamLogo abbrev={prediction.away_team} teamId={prediction.away_team_id} size={44} />
-                  <span className="text-xs font-bold text-white tracking-wide uppercase">{awayName}</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-brand-muted">No upcoming game</p>
-            )}
-          </div>
-
-          {/* Predicted winner */}
-          <div className="px-6 py-5">
-            <p className="text-[10px] tracking-widest uppercase text-brand-muted mb-4">
-              🏆 PREDICTED WINNER
-            </p>
-            {prediction ? (
-              <>
-                <p className="text-2xl font-black text-white tracking-tight leading-none uppercase">
-                  {winnerName}
-                </p>
-                <p className="text-sm text-brand-green font-semibold mt-2">
-                  ({confidence}% Confidence)
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-brand-muted">No prediction yet</p>
-            )}
-          </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
+          <span className="text-[10px] text-brand-green tracking-widest uppercase font-bold">LIVE</span>
         </div>
-
-        {/* Running record */}
-        <div className="px-6 py-5">
-          <p className="text-[10px] tracking-widest uppercase text-brand-muted mb-4">
-            📊 RUNNING RECORD
-          </p>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <div className="flex items-end gap-1">
-                <span className="text-3xl font-black text-brand-green">{correct}</span>
-                <span className="text-brand-green text-lg mb-0.5">✓</span>
-              </div>
-              <p className="text-[10px] text-brand-muted tracking-widest mt-0.5">CORRECT</p>
-            </div>
-            <div>
-              <div className="flex items-end gap-1">
-                <span className="text-3xl font-black text-red-400">{incorrect}</span>
-                <span className="text-red-400 text-lg mb-0.5">✗</span>
-              </div>
-              <p className="text-[10px] text-brand-muted tracking-widest mt-0.5">INCORRECT</p>
-            </div>
-            <div>
-              <div className="flex items-end gap-1">
-                <span className="text-3xl font-black text-white">{accuracy}%</span>
-                <span className="text-brand-green text-lg mb-0.5">🎯</span>
-              </div>
-              <p className="text-[10px] text-brand-muted tracking-widest mt-0.5">ACCURACY</p>
-            </div>
-          </div>
-        </div>
-
       </div>
+
+      {/* Game + Predicted winner */}
+      <div className="flex-1 grid grid-cols-2 divide-x divide-brand-border border-b border-brand-border min-h-0">
+
+        {/* Next game */}
+        <div className="px-5 py-4 flex flex-col">
+          <p className="text-[9px] tracking-widest uppercase text-brand-muted mb-3">
+            📅 NEXT GAME
+          </p>
+          {prediction ? (
+            <div className="flex items-center gap-3 flex-1">
+              <div className="flex flex-col items-center gap-1">
+                <TeamLogo abbrev={prediction.home_team} teamId={prediction.home_team_id} size={40} />
+                <span className="text-[10px] font-bold text-white tracking-wide uppercase">{homeName}</span>
+              </div>
+              <span className="text-brand-muted text-[10px] font-semibold">VS</span>
+              <div className="flex flex-col items-center gap-1">
+                <TeamLogo abbrev={prediction.away_team} teamId={prediction.away_team_id} size={40} />
+                <span className="text-[10px] font-bold text-white tracking-wide uppercase">{awayName}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-brand-muted">No upcoming game</p>
+          )}
+        </div>
+
+        {/* Predicted winner */}
+        <div className="px-5 py-4 flex flex-col">
+          <p className="text-[9px] tracking-widest uppercase text-brand-muted mb-3">
+            🏆 PREDICTED WINNER
+          </p>
+          {prediction ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <p className="text-xl font-black text-white tracking-tight leading-none uppercase">
+                {winnerName}
+              </p>
+              <p className="text-xs text-brand-green font-semibold mt-1.5">
+                ({confidence}% Confidence)
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-brand-muted">No prediction yet</p>
+          )}
+        </div>
+      </div>
+
+      {/* Running record */}
+      <div className="px-5 py-4 flex-shrink-0">
+        <p className="text-[9px] tracking-widest uppercase text-brand-muted mb-3">
+          📊 RUNNING RECORD
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <div className="flex items-end gap-1">
+              <span className="text-2xl font-black text-brand-green">{correct}</span>
+              <span className="text-brand-green text-base mb-0.5">✓</span>
+            </div>
+            <p className="text-[9px] text-brand-muted tracking-widest">CORRECT</p>
+          </div>
+          <div>
+            <div className="flex items-end gap-1">
+              <span className="text-2xl font-black text-red-400">{incorrect}</span>
+              <span className="text-red-400 text-base mb-0.5">✗</span>
+            </div>
+            <p className="text-[9px] text-brand-muted tracking-widest">INCORRECT</p>
+          </div>
+          <div>
+            <div className="flex items-end gap-1">
+              <span className="text-2xl font-black text-white">{accuracy}%</span>
+              <span className="text-brand-green text-base mb-0.5">🎯</span>
+            </div>
+            <p className="text-[9px] text-brand-muted tracking-widest">ACCURACY</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
