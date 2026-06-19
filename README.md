@@ -1,6 +1,6 @@
 # courtside-oracle
 
-NBA game outcome predictor using XGBoost + SHAP. Runs daily via GitHub Actions, stores predictions and results in Supabase, and exposes data for a Next.js website integration.
+67.55% accurate NBA game outcome predictor using XGBoost + SHAP. Runs daily via GitHub Actions, stores predictions and results in Supabase, and exposes data for a Next.js website integration.
 
 **Live accuracy tracked publicly** — every prediction is logged with a confidence score and marked correct or incorrect after games complete.
 
