@@ -228,6 +228,7 @@ web/.next/
 web/node_modules/
 web/.env.local
 web/out/
+!web/lib/
 
 # Keep the ELO snapshot (needed by GitHub Actions for predictions)
 !src/data/processed/player_elo_current.parquet
