@@ -80,35 +80,51 @@ export default function GameCard({ prediction, shap }: Props) {
 
       {/* Teams */}
       <div className="flex items-center justify-between px-6 py-5 gap-4">
-        {/* Away */}
+        {/* Home - left */}
         <div className="flex flex-col items-center gap-2 flex-1">
-          <TeamLogo abbrev={away_team} teamId={away_team_id} size={56} />
-          <span className="text-sm font-bold text-white tracking-wide">{away_team}</span>
-          <span className="text-xs text-brand-muted hidden sm:block">{awayName}</span>
+          <TeamLogo abbrev={home_team} teamId={home_team_id} size={56} />
+          <span className="text-sm font-bold text-white tracking-wide">{home_team}</span>
+          <span className="text-xs text-brand-muted hidden sm:block">{homeName}</span>
         </div>
 
         {/* VS + probability bar */}
         <div className="flex flex-col items-center gap-3 flex-[2]">
           <span className="text-xs text-brand-muted tracking-[0.3em]">VS</span>
 
-          {/* Prob bar */}
-          <div className="w-full h-2 rounded-full bg-brand-border overflow-hidden flex">
-            <div
-              className="h-full bg-brand-green transition-all duration-500"
-              style={{ width: `${homeProb * 100}%` }}
-            />
+          {/* Prob bar - diverging from center, home on left */}
+          <div className="w-full flex items-center h-2">
+            {/* left half: home */}
+            <div className="flex-1 flex justify-end h-full">
+              {homeProb >= awayProb && (
+                <div
+                  className="h-full rounded-l-full bg-brand-green transition-all duration-500"
+                  style={{ width: `${(homeProb - 0.5) * 200}%` }}
+                />
+              )}
+            </div>
+            {/* center dotted line */}
+            <div className="w-px h-4 shrink-0" style={{ background: 'repeating-linear-gradient(to bottom, rgba(107,114,128,0.6) 0px, rgba(107,114,128,0.6) 2px, transparent 2px, transparent 4px)' }} />
+            {/* right half: away */}
+            <div className="flex-1 flex justify-start h-full">
+              {awayProb > homeProb && (
+                <div
+                  className="h-full rounded-r-full bg-red-500 transition-all duration-500"
+                  style={{ width: `${(awayProb - 0.5) * 200}%` }}
+                />
+              )}
+            </div>
           </div>
           <div className="flex justify-between w-full text-xs text-brand-muted">
-            <span>{(awayProb * 100).toFixed(0)}%</span>
             <span>{(homeProb * 100).toFixed(0)}%</span>
+            <span>{(awayProb * 100).toFixed(0)}%</span>
           </div>
         </div>
 
-        {/* Home */}
+        {/* Away - right */}
         <div className="flex flex-col items-center gap-2 flex-1">
-          <TeamLogo abbrev={home_team} teamId={home_team_id} size={56} />
-          <span className="text-sm font-bold text-white tracking-wide">{home_team}</span>
-          <span className="text-xs text-brand-muted hidden sm:block">{homeName}</span>
+          <TeamLogo abbrev={away_team} teamId={away_team_id} size={56} />
+          <span className="text-sm font-bold text-white tracking-wide">{away_team}</span>
+          <span className="text-xs text-brand-muted hidden sm:block">{awayName}</span>
         </div>
       </div>
 
@@ -138,37 +154,73 @@ export default function GameCard({ prediction, shap }: Props) {
       </div>
 
       {/* SHAP factors */}
-      {topShap.length > 0 && (
-        <div className="px-5 pb-5">
-          <p className="text-[10px] tracking-widest text-brand-muted uppercase mb-3">
-            Top Factors
-          </p>
-          <div className="flex flex-col gap-2">
-            {topShap.map((s) => {
-              const isHome    = s.shap_value > 0;
-              const pct       = (Math.abs(s.shap_value) / maxShap) * 100;
-              return (
-                <div key={s.id} className="flex items-center gap-3 text-xs">
-                  <span className="text-brand-muted w-40 shrink-0 truncate">
-                    {formatFeatureName(s.feature_name)}
-                  </span>
-                  <div className="flex-1 flex items-center gap-1.5">
-                    <div className="flex-1 h-1.5 rounded-full bg-brand-border overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${isHome ? "bg-brand-green" : "bg-red-500"}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className={`text-[10px] shrink-0 ${isHome ? "text-brand-green" : "text-red-400"}`}>
-                      → {isHome ? home_team : away_team}
+      {topShap.length > 0 && (() => {
+        const homeIsPredicted = predicted_team === home_team;
+        return (
+          <div className="px-5 pb-5">
+            {/* headers match team layout: home on left, away on right */}
+            <div className="flex items-center mb-2">
+              <span className="text-[10px] tracking-widest text-brand-muted uppercase w-36 shrink-0">
+                Top Factors
+              </span>
+              <div className="flex-1 flex text-[9px]">
+                <span className={`flex-1 text-left pl-1 ${homeIsPredicted ? "text-brand-green" : "text-red-400"}`}>
+                  {home_team} →
+                </span>
+                <span className={`flex-1 text-right pr-1 ${!homeIsPredicted ? "text-brand-green" : "text-red-400"}`}>
+                  ← {away_team}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {topShap.map((s) => {
+                // Direction matches team layout: left = home (shap > 0), right = away (shap < 0)
+                const isHome     = s.shap_value > 0;
+                // Color: green = supports the pick, red = works against it
+                const favorsPick = isHome === homeIsPredicted;
+                const pct        = (Math.abs(s.shap_value) / maxShap) * 50;
+                return (
+                  <div key={s.id} className="flex items-center gap-2 text-xs">
+                    <span className="text-brand-muted w-36 shrink-0 truncate text-[11px]">
+                      {formatFeatureName(s.feature_name)}
                     </span>
+
+                    <div className="flex-1 flex items-center h-3">
+                      {/* left = home side */}
+                      <div className="flex-1 flex justify-end h-1.5">
+                        {isHome && (
+                          <div
+                            className={`h-full rounded-l-full ${favorsPick ? "bg-brand-green" : "bg-red-500"}`}
+                            style={{ width: `${pct * 2}%` }}
+                          />
+                        )}
+                      </div>
+
+                      {/* center dotted line */}
+                      <div className="w-px h-4 shrink-0" style={{ background: 'repeating-linear-gradient(to bottom, rgba(107,114,128,0.6) 0px, rgba(107,114,128,0.6) 2px, transparent 2px, transparent 4px)' }} />
+
+                      {/* right = away side */}
+                      <div className="flex-1 flex justify-start h-1.5">
+                        {!isHome && (
+                          <div
+                            className={`h-full rounded-r-full ${favorsPick ? "bg-brand-green" : "bg-red-500"}`}
+                            style={{ width: `${pct * 2}%` }}
+                          />
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            <p className="text-[10px] text-brand-muted mt-3">
+              Green = supports pick · Red = works against pick · Showing 5 of 30+ factors
+            </p>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

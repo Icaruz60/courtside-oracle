@@ -11,7 +11,7 @@ export default function RecordStats({ record }: Props) {
     ? (record.accuracy * 100).toFixed(1)
     : correct + incorrect > 0
       ? ((correct / (correct + incorrect)) * 100).toFixed(1)
-      : "—";
+      : "-";
 
   return (
     <div className="flex items-center gap-6 flex-wrap">
